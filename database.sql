@@ -20,11 +20,13 @@ CREATE TABLE IF NOT EXISTS `users` (
     `phone_number` VARCHAR(20),
     `bio` TEXT,
     `role` ENUM('utilisateur', 'psychologue', 'admin') DEFAULT 'utilisateur',
+    `demande_psy` INT DEFAULT 0,
     `status` INT DEFAULT 1,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),
     INDEX idx_role (role),
+    INDEX idx_demande_psy (demande_psy),
     INDEX idx_created_at (created_at)
 );
 

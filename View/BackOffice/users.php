@@ -38,6 +38,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete'])) {
                 <i class="fas fa-users"></i>
                 <span>Utilisateurs</span>
             </a>
+            <a href="psy_requests.php" class="sidebar-link">
+                <i class="fas fa-user-check"></i>
+                <span>Demandes Psychologue</span>
+            </a>
             <a href="../../logout.php" class="sidebar-link">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Déconnexion</span>

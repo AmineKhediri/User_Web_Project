@@ -10,13 +10,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $location = $_POST['location'] ?? null;
     $phone_number = $_POST['phone_number'] ?? null;
     $bio = $_POST['bio'] ?? null;
+    $demande_psy = isset($_POST['demande_psy']) ? 1 : 0;
+    
     // Les nouveaux utilisateurs sont TOUJOURS "utilisateur"
     // Si quelqu'un veut être psychologue, il demande à l'admin
     $role = 'utilisateur';
 
     $user = new User($username, $email, $password, $location, $phone_number, $bio, $role);
     $ctrl = new userController();
-    $result = $ctrl->addUser($user);
+    $result = $ctrl->addUser($user, $demande_psy);
     
     if (strpos($result, "successfully") !== false) {
         $message = "Inscription réussie ! Vous pouvez maintenant vous connecter.";
@@ -41,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <header class="main-header">
         <div class="header-content">
             <div class="logo-section">
-                <img src="logo_supportini.jpg" alt="SUPPORTINI Logo" class="logo">
+                <img src="../../logo_supportini.jpg" alt="SUPPORTINI Logo" class="logo">
                 <div class="site-title">SUPPORTINI.TN</div>
             </div>
             <nav class="nav-links">
@@ -90,20 +92,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <textarea name="bio" class="form-control" placeholder="Votre bio (optionnel)"></textarea>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Type de Compte</label>
-                    <select name="role" class="form-control" required>
-                        <option value="utilisateur" selected>Utilisateur Standard</option>
-                        <option vacheckbox-label" style="display: flex; align-items: center; cursor: pointer; gap: 10px;">
+                    <label class="checkbox-label" style="display: flex; align-items: center; cursor: pointer; gap: 10px;">
                         <input type="checkbox" name="demande_psy" value="1" style="width: 18px; height: 18px; cursor: pointer;">
                         <span style="font-weight: 500;">Je suis un psychologue/praticien</span>
                     </label>
                     <small style="color: #999; margin-top: 8px; display: block;">
                         ✓ Si vous cochez cette case, l'administrateur recevra votre demande pour devenir psychologue<br>
                         ✓ Après vérification, votre rôle sera changé de "Utilisateur" à "Psychologue"
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-user-plus"></i> S'inscrire
-                    </button>
+                    </small>
                 </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> S'inscrire
+                </button>
             </form>
             <p style="text-align: center; margin-top: 20px; color: var(--text-muted);">
                 Déjà un compte ? <a href="login.php" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">Connectez-vous</a>
@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <footer class="main-footer">
         <div class="footer-content">
-            <p class="footer-text">&copy; 2024 SUPPORTINI.TN - Tous droits réservés</p>
+            <p class="footer-text">&copy; 2025 SUPPORTINI.TN - Tous droits réservés</p>
         </div>
     </footer>
 </body>

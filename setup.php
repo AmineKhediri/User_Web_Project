@@ -330,7 +330,7 @@ try {
         </div>
         
         <div class="footer">
-            <p>SUPPORTINI © 2024 | Plateforme de Gestion d'Utilisateurs</p>
+            <p>SUPPORTINI © 2025 | Plateforme de Gestion d'Utilisateurs</p>
         </div>
     </div>
 </body>

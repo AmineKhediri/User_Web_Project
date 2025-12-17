@@ -23,7 +23,7 @@ $user = $ctrl->getUserById($_SESSION['user_id']);
     <header class="main-header">
         <div class="header-content">
             <div class="logo-section">
-                <img src="logo_supportini.jpg" alt="SUPPORTINI Logo" class="logo">
+                <img src="../../logo_supportini.jpg" alt="SUPPORTINI Logo" class="logo">
                 <div class="site-title">SUPPORTINI.TN</div>
             </div>
             <nav class="nav-links">
@@ -69,7 +69,7 @@ $user = $ctrl->getUserById($_SESSION['user_id']);
 
     <footer class="main-footer">
         <div class="footer-content">
-            <p class="footer-text">&copy; 2024 SUPPORTINI - Tous droits réservés</p>
+            <p class="footer-text">&copy; 2025 SUPPORTINI - Tous droits réservés</p>
         </div>
     </footer>
 </body>
