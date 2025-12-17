@@ -1,0 +1,91 @@
+═══════════════════════════════════════════════════════════════════════════
+                    🚀 DÉMARRER AVEC SUPPORTINI 🚀
+═══════════════════════════════════════════════════════════════════════════
+
+📍 VOTRE SITUATION ACTUELLE:
+   ✅ Vous avez changé votre rôle en "admin" dans PHPMyAdmin
+   ✅ Votre compte: khediri.amine.inceptumje@gmail.com
+   ✅ Le projet est prêt!
+
+═══════════════════════════════════════════════════════════════════════════
+⏱️  ÉTAPES RAPIDES (2 minutes)
+═══════════════════════════════════════════════════════════════════════════
+
+1️⃣  ALLEZ À LA PAGE DE CONNEXION
+    URL: http://localhost/Web_Project_Utilisateurs/View/FrontOffice/login.php
+
+2️⃣  ENTREZ VOS IDENTIFIANTS
+    Email: khediri.amine.inceptumje@gmail.com
+    Mot de passe: (votre mot de passe)
+
+3️⃣  CLIQUEZ SUR "SE CONNECTER"
+    → Vous serez automatiquement redirigé vers le PANEL ADMIN
+
+4️⃣  BIENVENUE! 👑
+    Vous pouvez maintenant:
+    ➕ Ajouter des utilisateurs
+    ✏️  Modifier les utilisateurs
+    🗑️  Supprimer les utilisateurs
+    🔄 Changer les rôles
+
+═══════════════════════════════════════════════════════════════════════════
+📚 POUR EN SAVOIR PLUS
+═══════════════════════════════════════════════════════════════════════════
+
+Lire les guides:
+  • GUIDE_SIMPLE.md  ............ Guide complet pour débutants
+  • README.md ................... Documentation complète du projet
+
+═══════════════════════════════════════════════════════════════════════════
+🎯 CE QUE VOUS AVEZ
+═══════════════════════════════════════════════════════════════════════════
+
+FRONT-END (PUBLIC):
+  • Page d'accueil
+  • Inscription (avec choix de rôle)
+  • Connexion
+  • Tableau de bord utilisateur
+
+BACK-END (ADMIN):
+  • Gestion complète des utilisateurs
+  • Ajout/Modification/Suppression
+  • Changement de rôles
+
+BASE DE DONNÉES:
+  • 3 rôles: utilisateur, psychologue, admin
+  • Sécurité: mots de passe chiffrés
+  • Sessions sécurisées
+
+═══════════════════════════════════════════════════════════════════════════
+🆘 BESOIN D'AIDE?
+═══════════════════════════════════════════════════════════════════════════
+
+❌ "Je ne peux pas me connecter"
+   → Vérifiez votre email et mot de passe
+   → Assurez-vous que XAMPP est allumé
+   → Assurez-vous que MySQL est allumé
+
+❌ "Je ne vois pas le panel admin"
+   → Votre rôle est-il vraiment "admin"?
+   → Reconnectez-vous
+
+❌ "Page d'erreur"
+   → Consultez GUIDE_SIMPLE.md
+
+═══════════════════════════════════════════════════════════════════════════
+✨ BON À SAVOIR
+═══════════════════════════════════════════════════════════════════════════
+
+• Le projet est SIMPLE et CLAIR - pas de complexité inutile
+• Tous les fichiers sont COMMENTÉS pour vous aider
+• Les erreurs s'affichent clairement
+• Vous pouvez modifier le code sans peur!
+
+═══════════════════════════════════════════════════════════════════════════
+
+                      👉 CONNECTEZ-VOUS MAINTENANT! 👈
+
+                    http://localhost/Web_Project_Utilisateurs/
+                           View/FrontOffice/login.php
+
+═══════════════════════════════════════════════════════════════════════════

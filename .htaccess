@@ -1,0 +1,5 @@
+# Redirection automatique
+RewriteEngine On
+
+# Redirection de l'index vers index.html
+RewriteRule ^$ index.html [L]
