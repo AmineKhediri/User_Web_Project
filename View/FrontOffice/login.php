@@ -1,30 +1,50 @@
 <?php
+session_start();
 require_once __DIR__ . '/../../Controller/userController.php';
 
 $message = "";
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $email = $_POST['email'];
-    $password = $_POST['password'];
+$resetSuccess = "";
 
-    $ctrl = new userController();
-    $users = $ctrl->getAllUsers();
-    $loggedIn = false;
-    foreach ($users as $user) {
-        if ($user->getEmail() == $email && password_verify($password, $user->getPassword())) {
-            session_start();
-            $_SESSION['user_id'] = $user->getId();
-            $_SESSION['role'] = $user->getRole();
-            $loggedIn = true;
-            if ($user->getRole() == 'admin') {
-                header("Location: ../BackOffice/users.php");
+// Vérifier le paramètre reset
+if (isset($_GET['reset']) && $_GET['reset'] === 'success') {
+    $resetSuccess = "✓ Mot de passe réinitialisé avec succès! Veuillez vous connecter.";
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $email = $_POST['email'] ?? '';
+    $password = $_POST['password'] ?? '';
+
+    if (!$email || !$password) {
+        $message = "Veuillez entrer email et mot de passe";
+    } else {
+        $ctrl = new userController();
+        
+        // Vérifier si le compte est verrouillé
+        $user = $ctrl->getUserByEmail($email);
+        if ($user && $ctrl->isAccountLocked($user['id'])) {
+            $message = "⏳ Compte temporairement verrouillé. Réessayez dans 30 minutes.";
+        } else if ($user && $user['is_blocked']) {
+            $message = "🚫 Compte bloqué. Raison: " . ($user['blocked_reason'] ?: 'Décision administrative');
+        } else if ($user && $user['is_banned']) {
+            $message = "🔴 Compte banni. Raison: " . ($user['banned_reason'] ?: 'Violation des conditions');
+        } else {
+            // Authentification
+            $result = $ctrl->validateLogin($email, $password);
+            if ($result) {
+                $_SESSION['user_id'] = $result['id'];
+                $_SESSION['user_role'] = $result['role'];
+                $_SESSION['username'] = $result['username'];
+                
+                if ($result['role'] == 'admin') {
+                    header("Location: ../BackOffice/users.php");
+                } else {
+                    header("Location: dashboard.php");
+                }
+                exit;
             } else {
-                header("Location: dashboard.php");
+                $message = "❌ Email ou mot de passe incorrect";
             }
-            exit;
         }
-    }
-    if (!$loggedIn) {
-        $message = "Email ou mot de passe incorrect";
     }
 }
 ?>
@@ -60,8 +80,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
 
         <div class="search-container" style="max-width: 500px; margin: 0 auto;">
+            <?php if ($resetSuccess): ?>
+                <div style="color: #155724; margin-bottom: 20px; padding: 12px; background: #d4edda; border-radius: 4px; border-left: 4px solid #28a745;">
+                    <?php echo htmlspecialchars($resetSuccess); ?>
+                </div>
+            <?php endif; ?>
             <?php if ($message): ?>
-                <div style="color: #ff6659; margin-bottom: 20px; padding: 12px; background: rgba(211, 47, 47, 0.1); border-radius: 4px; border-left: 4px solid var(--primary-color);">
+                <div style="color: #721c24; margin-bottom: 20px; padding: 12px; background: #f8d7da; border-radius: 4px; border-left: 4px solid var(--primary-color);">
                     <?php echo htmlspecialchars($message); ?>
                 </div>
             <?php endif; ?>
@@ -80,9 +105,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </button>
                 </div>
             </form>
-            <p style="text-align: center; margin-top: 20px; color: var(--text-muted);">
-                Pas de compte ? <a href="signup.php" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">Inscrivez-vous</a>
-            </p>
+            <div style="margin-top: 20px; text-align: center;">
+                <p style="color: var(--text-muted); margin-bottom: 10px;">
+                    <a href="forgot_password.php" style="color: var(--primary-color); text-decoration: none;">🔐 Mot de passe oublié ?</a>
+                </p>
+                <p style="color: var(--text-muted);">
+                    Pas de compte ? <a href="signup.php" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">Inscrivez-vous</a>
+                </p>
+            </div>
         </div>
     </main>
 
@@ -91,8 +121,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <p class="footer-text">&copy; 2025 SUPPORTINI - Tous droits réservés</p>
         </div>
     </footer>
-</body>
-</html>
-    </main>
 </body>
 </html>

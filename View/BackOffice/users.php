@@ -1,13 +1,26 @@
 <?php
 require_once __DIR__ . '/../../Controller/userController.php';
 session_start();
-if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] != 'admin') {
     header("Location: ../FrontOffice/login.php");
     exit;
 }
 
 $ctrl = new userController();
 $users = $ctrl->getAllUsers();
+
+// Tri par rôle (admin, psychologue, utilisateur) puis par ID
+if (!empty($users)) {
+    usort($users, function($a, $b) {
+        $roleOrder = ['admin' => 0, 'psychologue' => 1, 'utilisateur' => 2];
+        $roleA = $roleOrder[$a['role']] ?? 3;
+        $roleB = $roleOrder[$b['role']] ?? 3;
+        if ($roleA !== $roleB) {
+            return $roleA - $roleB;
+        }
+        return $a['id'] - $b['id'];
+    });
+}
 
 $message = "";
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete'])) {
@@ -76,31 +89,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete'])) {
                     </tr>
                 </thead>
                 <tbody>
+                    <?php if (empty($users)): ?>
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 20px; color: #999;">
+                            Aucun utilisateur trouvé
+                        </td>
+                    </tr>
+                    <?php else: ?>
                     <?php foreach ($users as $user): ?>
                     <tr>
-                        <td><?php echo $user->getId(); ?></td>
-                        <td><?php echo htmlspecialchars($user->getUsername()); ?></td>
-                        <td><?php echo htmlspecialchars($user->getEmail()); ?></td>
+                        <td><?php echo htmlspecialchars($user['id']); ?></td>
+                        <td><?php echo htmlspecialchars($user['username']); ?></td>
+                        <td><?php echo htmlspecialchars($user['email']); ?></td>
                         <td>
-                            <span class="role-badge role-<?php echo htmlspecialchars($user->getRole()); ?>">
+                            <span class="role-badge role-<?php echo htmlspecialchars($user['role']); ?>">
                                 <?php 
                                 $roles = [
                                     'utilisateur' => 'Utilisateur',
                                     'psychologue' => 'Psychologue',
                                     'admin' => 'Admin'
                                 ];
-                                echo $roles[$user->getRole()] ?? htmlspecialchars($user->getRole());
+                                echo $roles[$user['role']] ?? htmlspecialchars($user['role']);
                                 ?>
                             </span>
                         </td>
-                        <td><?php echo $user->getLocation() ? htmlspecialchars($user->getLocation()) : 'Non défini'; ?></td>
+                        <td><?php echo !empty($user['location']) ? htmlspecialchars($user['location']) : 'Non défini'; ?></td>
                         <td>
                             <div class="action-buttons">
-                                <a href="edit_user.php?id=<?php echo $user->getId(); ?>" class="btn btn-primary btn-sm">
+                                <a href="edit_user.php?id=<?php echo htmlspecialchars($user['id']); ?>" class="btn btn-primary btn-sm">
                                     <i class="fas fa-edit"></i> Modifier
                                 </a>
                                 <form method="POST" style="display: inline;">
-                                    <input type="hidden" name="id" value="<?php echo $user->getId(); ?>">
+                                    <input type="hidden" name="id" value="<?php echo htmlspecialchars($user['id']); ?>">
                                     <button type="submit" name="delete" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
                                         <i class="fas fa-trash"></i> Supprimer
                                     </button>
@@ -109,6 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete'])) {
                         </td>
                     </tr>
                     <?php endforeach; ?>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>

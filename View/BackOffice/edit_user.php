@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../Controller/userController.php';
 session_start();
-if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] != 'admin') {
     header("Location: ../FrontOffice/login.php");
     exit;
 }
@@ -31,21 +31,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $bio = $_POST['bio'] ?? null;
     $role = $_POST['role'] ?? 'utilisateur';
 
-    $user->setUsername($username);
-    $user->setEmail($email);
-    $user->setLocation($location);
-    $user->setPhoneNumber($phone_number);
-    $user->setBio($bio);
-    $user->setRole($role);
+    // Créer un objet User pour la mise à jour
+    $userObj = new User($username, $email, null, $location, $phone_number, $bio, $role);
+    $userObj->setId($id);
 
-    $result = $ctrl->updateUser($user, $id);
-    
-    if (strpos($result, "successfully") !== false) {
+    $success = $ctrl->updateUser($userObj);
+
+    if ($success) {
         $message = "Utilisateur mis à jour avec succès !";
         $message_type = "success";
         header("refresh:2;url=users.php");
     } else {
-        $message = $result;
+        $message = "Erreur lors de la mise à jour de l'utilisateur";
         $message_type = "error";
     }
 }
@@ -93,31 +90,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <form method="POST" action="">
                 <div class="form-group">
                     <label class="form-label">Nom d'utilisateur *</label>
-                    <input type="text" name="username" class="form-control" value="<?php echo htmlspecialchars($user->getUsername()); ?>" required>
+                    <input type="text" name="username" class="form-control" value="<?php echo htmlspecialchars($user['username']); ?>" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Email *</label>
-                    <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($user->getEmail()); ?>" required>
+                    <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($user['email']); ?>" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Rôle *</label>
                     <select name="role" class="form-control" required>
-                        <option value="utilisateur" <?php echo $user->getRole() == 'utilisateur' ? 'selected' : ''; ?>>Utilisateur</option>
-                        <option value="psychologue" <?php echo $user->getRole() == 'psychologue' ? 'selected' : ''; ?>>Psychologue</option>
-                        <option value="admin" <?php echo $user->getRole() == 'admin' ? 'selected' : ''; ?>>Admin</option>
+                        <option value="utilisateur" <?php echo $user['role'] == 'utilisateur' ? 'selected' : ''; ?>>Utilisateur</option>
+                        <option value="psychologue" <?php echo $user['role'] == 'psychologue' ? 'selected' : ''; ?>>Psychologue</option>
+                        <option value="admin" <?php echo $user['role'] == 'admin' ? 'selected' : ''; ?>>Admin</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Localisation</label>
-                    <input type="text" name="location" class="form-control" value="<?php echo htmlspecialchars($user->getLocation() ?? ''); ?>">
+                    <input type="text" name="location" class="form-control" value="<?php echo htmlspecialchars($user['location'] ?? ''); ?>">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Téléphone</label>
-                    <input type="text" name="phone_number" class="form-control" value="<?php echo htmlspecialchars($user->getPhoneNumber() ?? ''); ?>">
+                    <input type="text" name="phone_number" class="form-control" value="<?php echo htmlspecialchars($user['phone_number'] ?? ''); ?>">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Bio</label>
-                    <textarea name="bio" class="form-control"><?php echo htmlspecialchars($user->getBio() ?? ''); ?></textarea>
+                    <textarea name="bio" class="form-control"><?php echo htmlspecialchars($user['bio'] ?? ''); ?></textarea>
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">

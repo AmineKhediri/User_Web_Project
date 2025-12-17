@@ -22,11 +22,42 @@ CREATE TABLE IF NOT EXISTS `users` (
     `role` ENUM('utilisateur', 'psychologue', 'admin') DEFAULT 'utilisateur',
     `demande_psy` INT DEFAULT 0,
     `status` INT DEFAULT 1,
+    
+    -- Profil enrichi
+    `profile_photo` VARCHAR(255),
+    `gender` ENUM('male', 'female', 'other') DEFAULT NULL,
+    `date_of_birth` DATE,
+    `profession` VARCHAR(100),
+    `company` VARCHAR(100),
+    `nationality` VARCHAR(100),
+    `social_links` JSON,
+    
+    -- Sécurité & Contrôle admin
+    `is_blocked` INT DEFAULT 0,
+    `is_banned` INT DEFAULT 0,
+    `blocked_reason` TEXT,
+    `banned_reason` TEXT,
+    `is_locked` INT DEFAULT 0,
+    `locked_until` DATETIME,
+    `failed_login_attempts` INT DEFAULT 0,
+    
+    -- Reset password & Authentification
+    `password_reset_token` VARCHAR(255),
+    `password_reset_expires` DATETIME,
+    `forgotten_password_code` VARCHAR(6),
+    `forgotten_password_method` ENUM('email', 'sms', 'whatsapp') DEFAULT NULL,
+    `forgotten_password_expires` DATETIME,
+    `google_id` VARCHAR(255) UNIQUE,
+    `last_login` DATETIME,
+    
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),
     INDEX idx_role (role),
     INDEX idx_demande_psy (demande_psy),
+    INDEX idx_is_blocked (is_blocked),
+    INDEX idx_is_banned (is_banned),
+    INDEX idx_google_id (google_id),
     INDEX idx_created_at (created_at)
 );
 

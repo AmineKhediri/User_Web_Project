@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../Controller/userController.php';
 session_start();
-if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] != 'admin') {
     header("Location: ../FrontOffice/login.php");
     exit;
 }
@@ -95,22 +95,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <tbody>
                         <?php foreach ($psyRequests as $user): ?>
                         <tr>
-                            <td><?php echo $user->getId(); ?></td>
-                            <td><?php echo htmlspecialchars($user->getUsername()); ?></td>
-                            <td><?php echo htmlspecialchars($user->getEmail()); ?></td>
-                            <td><?php echo $user->getLocation() ? htmlspecialchars($user->getLocation()) : 'Non défini'; ?></td>
-                            <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo $user->getBio() ? htmlspecialchars(substr($user->getBio(), 0, 50)) . '...' : 'Non défini'; ?></td>
-                            <td><?php echo date('d/m/Y H:i', strtotime($user->getCreatedAt())); ?></td>
+                            <td><?php echo htmlspecialchars($user['id']); ?></td>
+                            <td><?php echo htmlspecialchars($user['username']); ?></td>
+                            <td><?php echo htmlspecialchars($user['email']); ?></td>
+                            <td><?php echo !empty($user['location']) ? htmlspecialchars($user['location']) : 'Non défini'; ?></td>
+                            <td><?php echo !empty($user['bio']) ? htmlspecialchars(substr($user['bio'], 0, 50)) . (strlen($user['bio']) > 50 ? '...' : '') : 'Non défini'; ?></td>
+                            <td><?php echo !empty($user['created_at']) ? date('d/m/Y H:i', strtotime($user['created_at'])) : 'Non défini'; ?></td>
                             <td>
                                 <div class="action-buttons" style="gap: 8px;">
                                     <form method="POST" style="display: inline;">
-                                        <input type="hidden" name="id" value="<?php echo $user->getId(); ?>">
+                                        <input type="hidden" name="id" value="<?php echo htmlspecialchars($user['id']); ?>">
                                         <button type="submit" name="approve" class="btn btn-success btn-sm">
                                             <i class="fas fa-check"></i> Approuver
                                         </button>
                                     </form>
                                     <form method="POST" style="display: inline;">
-                                        <input type="hidden" name="id" value="<?php echo $user->getId(); ?>">
+                                        <input type="hidden" name="id" value="<?php echo htmlspecialchars($user['id']); ?>">
                                         <button type="submit" name="reject" class="btn btn-danger btn-sm">
                                             <i class="fas fa-times"></i> Rejeter
                                         </button>

@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../../Controller/userController.php';
 session_start();
-if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] != 'admin') {
     header("Location: ../FrontOffice/login.php");
     exit;
 }

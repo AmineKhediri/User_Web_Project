@@ -170,7 +170,7 @@ Déconnexion: http://localhost/Web_Project_Utilisateurs/logout.php
 ## Compte de test
 
 Email: admin@supportini.com
-Password: admin123
+Password: admin
 Rôle: Admin
 
 (Si vous avez exécuté le SQL de création)
