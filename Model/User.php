@@ -33,6 +33,11 @@ class User
     private ?string $locked_until;
     private int $failed_login_attempts;
     
+    // 2FA
+    private ?string $twofa_secret;
+    private int $twofa_enabled;
+    private ?string $recovery_codes;
+    
     // Authentification avancée
     private ?string $password_reset_token;
     private ?string $password_reset_expires;
@@ -72,7 +77,14 @@ class User
         $this->banned_reason = null;
         $this->is_locked = 0;
         $this->locked_until = null;
+        $this->is_locked = 0;
+        $this->locked_until = null;
         $this->failed_login_attempts = 0;
+        
+        // 2FA - défauts
+        $this->twofa_secret = null;
+        $this->twofa_enabled = 0;
+        $this->recovery_codes = null;
         
         // Authentification - défauts
         $this->password_reset_token = null;
@@ -170,41 +182,81 @@ class User
     public function setCreatedAt(?string $ts): void { $this->created_at = $ts; }
     public function setUpdatedAt(?string $ts): void { $this->updated_at = $ts; }
 
+    // 2FA Setters
+    public function setTwoFaSecret(?string $secret): void { $this->twofa_secret = $secret; }
+    public function setTwoFaEnabled(int $enabled): void { $this->twofa_enabled = $enabled; }
+    public function setRecoveryCodes(?string $codes): void { $this->recovery_codes = $codes; }
+    public function getTwoFaSecret(): ?string { return $this->twofa_secret; }
+    public function getTwoFaEnabled(): int { return $this->twofa_enabled; }
+    public function getRecoveryCodes(): ?string { return $this->recovery_codes; }
+
+    // JSON DATA
+    private ?string $favorites_data; // Stored as JSON string
+    private ?string $audit_logs_data; // Stored as JSON string
+
+    // ... (Keep existing properties)
+
+    // Helper to append log
+    public function addLogEntry(string $action, string $details) {
+        $logs = json_decode($this->audit_logs_data ?? '[]', true);
+        if (!is_array($logs)) $logs = [];
+        
+        // Add new entry
+        array_unshift($logs, [
+            'action' => $action,
+            'details' => $details,
+            'created_at' => date('Y-m-d H:i:s'),
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
+        ]);
+        
+        // Keep only last 50
+        $logs = array_slice($logs, 0, 50);
+        
+        $this->audit_logs_data = json_encode($logs);
+        return $this->audit_logs_data;
+    }
+
+    // Helper to toggle favorite
+    public function toggleFavorite(int $itemId, string $type) {
+        $favs = json_decode($this->favorites_data ?? '[]', true);
+        if (!is_array($favs)) $favs = [];
+        
+        $key = "$type:$itemId";
+        $index = array_search($key, $favs);
+        
+        if ($index !== false) {
+            unset($favs[$index]); // Remove
+            $favs = array_values($favs); // Re-index
+        } else {
+            $favs[] = $key; // Add
+        }
+        
+        $this->favorites_data = json_encode($favs);
+        return $this->favorites_data;
+    }
+
+    public function getFavoritesData(): array {
+        return json_decode($this->favorites_data ?? '[]', true);
+    }
+    
+    public function getAuditLogsData(): array {
+        return json_decode($this->audit_logs_data ?? '[]', true);
+    }
+    
+    // Setters for DB loading
+    public function setFavoritesData(?string $json): void { $this->favorites_data = $json; }
+    public function setAuditLogsData(?string $json): void { $this->audit_logs_data = $json; }
+
     public function toArray(): array
     {
         return [
+            // ... existing fields ...
             'id' => $this->id,
             'username' => $this->username,
             'email' => $this->email,
-            'password' => $this->password,
-            'location' => $this->location,
-            'phone_number' => $this->phone_number,
-            'bio' => $this->bio,
             'role' => $this->role,
-            'status' => $this->status,
-            'profile_photo' => $this->profile_photo,
-            'gender' => $this->gender,
-            'date_of_birth' => $this->date_of_birth,
-            'profession' => $this->profession,
-            'company' => $this->company,
-            'nationality' => $this->nationality,
-            'social_links' => $this->social_links,
-            'is_blocked' => $this->is_blocked,
-            'is_banned' => $this->is_banned,
-            'blocked_reason' => $this->blocked_reason,
-            'banned_reason' => $this->banned_reason,
-            'is_locked' => $this->is_locked,
-            'locked_until' => $this->locked_until,
-            'failed_login_attempts' => $this->failed_login_attempts,
-            'password_reset_token' => $this->password_reset_token,
-            'password_reset_expires' => $this->password_reset_expires,
-            'forgotten_password_code' => $this->forgotten_password_code,
-            'forgotten_password_method' => $this->forgotten_password_method,
-            'forgotten_password_expires' => $this->forgotten_password_expires,
-            'google_id' => $this->google_id,
-            'last_login' => $this->last_login,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at
+            'favorites_data' => json_decode($this->favorites_data ?? '[]'),
+            'audit_logs_data' => json_decode($this->audit_logs_data ?? '[]')
         ];
     }
 }

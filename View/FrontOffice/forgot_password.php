@@ -4,24 +4,31 @@ require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../Controller/userController.php';
 
 $controller = new userController();
-$message = '';
+$step = isset($_POST['step']) ? (int)$_POST['step'] : 1;
 $error = '';
-$step = 1; // 1: Method selection, 2: Email/Phone, 3: Code + Password
+
+if (isset($_GET['cancel'])) {
+    unset($_SESSION['forgot_method']);
+    unset($_SESSION['forgot_contact']);
+    unset($_SESSION['forgot_code']);
+    header("Location: forgot_password.php", true, 302);
+    exit();
+}
 
 // Traiter le formulaire
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Si l'utilisateur clique sur Retour (bouton), revenir à l'étape 1
+    // Si l'utilisateur clique sur Retour (bouton form)
     if (isset($_POST['back'])) {
-        // Nettoyer les choix précédents
         unset($_SESSION['forgot_method']);
         unset($_SESSION['forgot_email']);
         unset($_SESSION['forgot_contact']);
         unset($_SESSION['forgot_code']);
         $step = 1;
     }
+
     // ÉTAPE 1: Sélectionner la méthode (email, sms, whatsapp)
     if (isset($_POST['step']) && $_POST['step'] == 1) {
-        // Nettoyer la session en cas de retour d'étapes précédentes
+        // Nettoyer la session
         unset($_SESSION['forgot_method']);
         unset($_SESSION['forgot_email']);
         unset($_SESSION['forgot_contact']);
@@ -45,23 +52,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $step = 2;
         } else {
             // Chercher l'utilisateur par email ou téléphone
-            $user = null;
-            if ($method === 'email') {
-                $user = $controller->getUserByEmail($contact);
-            } else {
-                // Chercher par téléphone (phone_number)
-                $sql = "SELECT * FROM users WHERE phone_number = :phone LIMIT 1";
-                $pdo = config::getConnexion();
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute(['phone' => $contact]);
-                $user = $stmt->fetch(PDO::FETCH_ASSOC);
-            }
+            $user = $controller->getUserByContact($contact);
             
             if (!$user) {
-                $error = ($method === 'email' ? "Cet email" : "Ce numéro de téléphone") . " n'existe pas dans notre système";
+                $error = "Aucun compte trouvé avec cet email ou numéro.";
                 $step = 2;
             } else {
-                // Générer le code via le contrôleur
+                // Générer le code via le contrôleur (Email is used for identifying user code record, even if sent by phone)
+                // Note: userController uses 'email' column to update code. 
+                // We MUST use the user's email from the DB record even if they searched by phone.
                 $code = $controller->generateForgottenPasswordCode($user['email'], $method);
 
                 // Si l'update en base a échoué (ex: colonne manquante ou erreur), fallback local en session
@@ -83,58 +82,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
-    // ÉTAPE 3: Vérifier code et réinitialiser mot de passe
+    // ÉTAPE 3: Vérifier code et réinitialiser le mot de passe
     elseif (isset($_POST['step']) && $_POST['step'] == 3) {
         $code = trim($_POST['code'] ?? '');
-        $email = $_SESSION['forgot_email'] ?? '';
         $password = $_POST['password'] ?? '';
         $passwordConfirm = $_POST['password_confirm'] ?? '';
+        $email = $_SESSION['forgot_email'] ?? '';
         
+        // Vérifier code d'abord
         if (!$code) {
             $error = "Veuillez entrer le code de vérification";
             $step = 3;
-        } elseif (!$password) {
-            $error = "Veuillez entrer un nouveau mot de passe";
-            $step = 3;
-        } elseif ($password !== $passwordConfirm) {
-            $error = "Les mots de passe ne correspondent pas";
-            $step = 3;
-        } elseif (strlen($password) < 6) {
-            $error = "Le mot de passe doit contenir au moins 6 caractères";
-            $step = 3;
         } else {
-            // Vérifier et réinitialiser
+            // Vérifier le code
             $verified = $controller->verifyForgottenPasswordCode($email, $code);
-            $bypass = false;
-            // Si la vérification DB a échoué mais que nous avons un code en session (fallback), autoriser
+            
+            // Fallback local session (pour démo sans SMTP)
             if (!$verified && isset($_SESSION['forgot_code']) && $_SESSION['forgot_code'] === $code) {
                 $verified = true;
-                $bypass = true;
             }
 
-            if ($verified) {
-                if ($controller->resetPasswordWithCode($email, $code, $password, $bypass)) {
-                    // Nettoyer la session
+            if (!$verified) {
+                $error = "Code invalide ou expiré (15 minutes max)";
+                $step = 3;
+            } else if (!$password) {
+                $error = "Veuillez entrer un nouveau mot de passe";
+                $step = 3;
+            } else if ($password !== $passwordConfirm) {
+                $error = "Les mots de passe ne correspondent pas";
+                $step = 3;
+            } else if (strlen($password) < 6) {
+                $error = "Le mot de passe doit contenir au moins 6 caractères";
+                $step = 3;
+            } else {
+                // Réinitialiser le mot de passe directement
+                $res = $controller->resetPasswordWithCode($email, $code, $password, true);
+                if ($res) {
+                    // Nettoyer la session et rediriger vers login
                     unset($_SESSION['forgot_method']);
                     unset($_SESSION['forgot_email']);
                     unset($_SESSION['forgot_contact']);
                     unset($_SESSION['forgot_code']);
                     session_destroy();
-                    header("Location: login.php?reset=success");
+                    header("Location: login.php?reset=success", true, 302);
                     exit();
                 } else {
-                    $error = "Erreur lors de la réinitialisation du mot de passe";
+                    $error = "Erreur lors de la réinitialisation";
                     $step = 3;
                 }
-            } else {
-                $error = "Code invalide ou expiré (15 minutes max)";
-                $step = 3;
             }
         }
     }
 }
 
-// Déterminer l'étape actuelle (par défaut 1) - seulement si pas déjà défini par POST
+// Déterminer l'étape actuelle (par défaut 1)
 if ($step == 1 && isset($_SESSION['forgot_method']) && empty($error)) {
     if (isset($_SESSION['forgot_email']) && empty($error)) {
         $step = 3;
@@ -287,26 +288,26 @@ if ($step == 1 && isset($_SESSION['forgot_method']) && empty($error)) {
                     <label class="form-label">Code de vérification</label>
                     <input type="text" name="code" class="form-control" placeholder="000000" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" required autofocus>
                     <small style="color: #666; display: block; margin-top: 5px;">
-                        <i class="fas fa-info-circle"></i> Code à 6 chiffres (valide 15 minutes)
+                        <i class="fas fa-info-circle"></i> Code envoyé. Entrez-le ci-dessous.
                     </small>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" style="margin-top: 25px;">
                     <label class="form-label">Nouveau mot de passe</label>
                     <input type="password" name="password" class="form-control" placeholder="Min. 6 caractères" required>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Confirmer le mot de passe</label>
-                    <input type="password" name="password_confirm" class="form-control" placeholder="Confirmez le mot de passe" required>
+                    <input type="password" name="password_confirm" class="form-control" placeholder="Confirmez" required>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary" style="margin-right: 10px;">
-                        <i class="fas fa-lock"></i> Réinitialiser
+                    <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 10px;">
+                        <i class="fas fa-lock"></i> Réinitialiser le mot de passe
                     </button>
-                    <a href="login.php" class="btn btn-secondary" style="text-decoration: none; text-align: center;">
-                        <i class="fas fa-times"></i> Annuler
+                    <a href="forgot_password.php?cancel=1" class="btn btn-secondary" style="width: 100%; text-align:center;">
+                        Annuler
                     </a>
                 </div>
             </form>

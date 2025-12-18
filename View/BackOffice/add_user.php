@@ -52,6 +52,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <i class="fas fa-users"></i>
                 <span>Utilisateurs</span>
             </a>
+            <a href="../FrontOffice/dashboard.php" class="sidebar-link">
+                <i class="fas fa-user-circle"></i>
+                <span>Mon Profil</span>
+            </a>
             <a href="../../logout.php" class="sidebar-link">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Déconnexion</span>

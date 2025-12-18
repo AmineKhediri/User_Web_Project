@@ -101,9 +101,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         ✓ Après vérification, votre rôle sera changé de "Utilisateur" à "Psychologue"
                     </small>
                 </div>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-user-plus"></i> S'inscrire
-                </button>
+                <div class="form-actions" style="display: flex; flex-direction: column; gap: 10px;">
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-user-plus"></i> S'inscrire
+                    </button>
+                    <!-- Google Signup -->
+                    <a href="https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=<?php echo GOOGLE_CLIENT_ID; ?>&scope=openid%20email%20profile&redirect_uri=<?php echo urlencode(GOOGLE_REDIRECT_URI); ?>&access_type=online" 
+                       class="btn btn-outline" style="width: 100%; border-color: #ddd; color: #fff; display:flex; align-items:center; justify-content:center; gap:10px;">
+                        <img src="https://www.google.com/favicon.ico" alt="Google" style="width:16px;"> S'inscrire avec Google
+                    </a>
+                </div>
             </form>
             <p style="text-align: center; margin-top: 20px; color: var(--text-muted);">
                 Déjà un compte ? <a href="login.php" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">Connectez-vous</a>

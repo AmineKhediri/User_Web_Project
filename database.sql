@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `status` INT DEFAULT 1,
     
     -- Profil enrichi
-    `profile_photo` VARCHAR(255),
+    `profile_photo` TEXT,
     `gender` ENUM('male', 'female', 'other') DEFAULT NULL,
     `date_of_birth` DATE,
     `profession` VARCHAR(100),
