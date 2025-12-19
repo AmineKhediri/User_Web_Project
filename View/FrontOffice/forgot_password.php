@@ -58,24 +58,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "Aucun compte trouvé avec cet email ou numéro.";
                 $step = 2;
             } else {
-                // Générer le code via le contrôleur (Email is used for identifying user code record, even if sent by phone)
-                // Note: userController uses 'email' column to update code. 
-                // We MUST use the user's email from the DB record even if they searched by phone.
+                // Générer le code via le contrôleur
                 $code = $controller->generateForgottenPasswordCode($user['email'], $method);
 
-                // Si l'update en base a échoué (ex: colonne manquante ou erreur), fallback local en session
+                // Si l'update en base a échoué, fallback local en session
                 if ($code === false || $code === null || $code === '') {
                     // Générer un code local et le stocker temporairement en session
                     $code = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
                     $_SESSION['forgot_email'] = $user['email'];
                     $_SESSION['forgot_contact'] = $contact;
                     $_SESSION['forgot_code'] = $code;
-                    $message = "✓ Code généré (mode local). Vérifiez (simulation).";
+                    $_SESSION['forgot_method'] = $method;
+                    error_log("[FORGOT_PASSWORD] Fallback local code generated for {$user['email']}: $code");
+                    $message = "✓ Code généré et enregistré. Vérifiez votre " . ($method === 'email' ? 'email' : ($method === 'sms' ? 'SMS' : 'WhatsApp')) . ".";
                     $step = 3;
                 } else {
                     $_SESSION['forgot_email'] = $user['email'];
                     $_SESSION['forgot_contact'] = $contact;
                     $_SESSION['forgot_code'] = $code;
+                    $_SESSION['forgot_method'] = $method;
                     $message = "✓ Code envoyé à votre " . ($method === 'email' ? 'email' : ($method === 'sms' ? 'numéro SMS' : 'WhatsApp')) . ". Vérifiez.";
                     $step = 3;
                 }

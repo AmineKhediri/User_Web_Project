@@ -14,7 +14,15 @@ class userController {
 
     public function __construct() {
         $this->pdo = config::getConnexion();
-        $this->notifier = new NotificationService();
+        
+        // Initialize NotificationService - IMPORTANT: toujours créer cette instance
+        try {
+            $this->notifier = new NotificationService();
+        } catch (Exception $e) {
+            error_log("[CONTROLLER_ERROR] NotificationService initialization failed: " . $e->getMessage());
+            // Continue sans notifier (notifications seront juste loggées)
+            $this->notifier = null;
+        }
     }
 
     /**
@@ -298,7 +306,9 @@ class userController {
                     $_SESSION['admin_2fa_user_id'] = $user['id'];
                     $_SESSION['admin_2fa_expires'] = time() + 300; // 5 min
                     
-                    $this->notifier->sendEmail($user['email'], 'Code de Connexion Admin', "Votre code 2FA est : <b>$otp</b>");
+                    if ($this->notifier) {
+                        $this->notifier->sendEmail($user['email'], 'Code de Connexion Admin', "Votre code 2FA est : <b>$otp</b>");
+                    }
                     error_log("ADMIN 2FA CODE for " . $user['email'] . ": " . $otp); 
                     
                     // LOG
@@ -424,11 +434,20 @@ class userController {
                 // SEND NOTIFICATION
                 if ($method === 'sms' && !empty($user['phone_number'])) {
                     error_log("RESET CODE SMS for " . $user['phone_number'] . ": $code");
-                    $this->notifier->sendSMS($user['phone_number'], "Supportini: Votre code de réinitialisation est $code");
+                    if ($this->notifier) {
+                        $this->notifier->sendSMS($user['phone_number'], "Supportini: Votre code de réinitialisation est $code");
+                    }
+                } elseif ($method === 'whatsapp' && !empty($user['phone_number'])) {
+                    error_log("RESET CODE WHATSAPP for " . $user['phone_number'] . ": $code");
+                    if ($this->notifier) {
+                        $this->notifier->sendWhatsApp($user['phone_number'], "Supportini: Votre code de réinitialisation est $code");
+                    }
                 } else {
                     error_log("RESET CODE EMAIL for " . $email . ": $code");
-                    $this->notifier->sendEmail($email, "Réinitialisation Mot de Passe", 
-                        "Bonjour " . $user['username'] . ",<br>Votre code de réinitialisation est : <b>$code</b>.<br>Il expire dans 15 minutes.");
+                    if ($this->notifier) {
+                        $this->notifier->sendEmail($email, "Réinitialisation Mot de Passe", 
+                            "Bonjour " . $user['username'] . ",<br>Votre code de réinitialisation est : <b>$code</b>.<br>Il expire dans 15 minutes.");
+                    }
                 }
                 
                 // LOG
